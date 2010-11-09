@@ -1,0 +1,15 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Ym.t
+
+lib/ymspecific.pl
+lib/ymgen.pl
+lib/Ym.pm
+lib/ymstat.pl
+lib/ymcmd.pl
+lib/ymcommon.pl
+lib/ymparse.pl
+bin/ym
+etc/ymconfig.pl
