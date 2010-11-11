@@ -21,11 +21,45 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 
-our %EXPORT_TAGS = ( 'all' => [ qw() ] );
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-our @EXPORT = qw();
+our @EXPORT_OK = qw ( 
 
-our $VERSION = '0.01';
+  AddCommand
+  AddHost
+  AddHostgroup
+  AddService
+  
+  DeleteCommand
+  DeleteHost
+  DeleteHostgroup
+  DeleteService
+  
+  ModifyCommand
+  ModifyHost
+  ModifyHostgroup
+  ModifyService
+  
+  CopyHost
+  CopyService
+  
+  List
+  Dump
+  
+  VerifyDataStructure
+  
+  GenerateCfg
+  
+  GetMembers
+  GetObjectList
+  
+  GetStruct
+  SaveStruct
+  
+  List
+  Dump
+
+);
+
+our $VERSION = '0.02';
 
 my $ymcfg = "$ENV{'YM_ETC'}/ymconfig.pl";
 
@@ -40,14 +74,15 @@ use Data::Dumper;
 use File::Copy;
 use Storable qw/dclone store retrieve/;
 
-require "$ENV{'YM_LIB'}/ymcmd.pl";
-require "$ENV{'YM_LIB'}/ymcommon.pl";
-require "$ENV{'YM_LIB'}/ymgen.pl";
-require "$ENV{'YM_LIB'}/ymparse.pl";
-require "$ENV{'YM_LIB'}/ymstat.pl";
+require "Ym/ymcmd.pl";
+require "Ym/ymcommon.pl";
+require "Ym/ymgen.pl";
+require "Ym/ymparse.pl";
+require "Ym/ymdata.pl";
+require "Ym/ymstat.pl";
 
 eval {
-  require "$ENV{'YM_LIB'}/ymspecific.pl";
+  require "Ym/ymspecific.pl";
   YmSpecific->import();
 };
 
@@ -57,11 +92,113 @@ __END__
 
 =head1 NAME
 
-Ym - a command line tool for manipulating Nagios configuration.
+Ym.pm - library for parsing/modifying/generating Nagios configuration.
+
+=head1 INSTALL
+
+Before you will be able to use any functions from this module,
+you have to give it a config file.
+
+It is better to place config in /usr/local/etc/ymconfig.pl or make a lymlink.
+
+All directories should be present and ym must have access and write permissions.
+
+Sample config file looks like in example:
+
+  {
+    package Ym;
+  
+    $YMHOME = '/home/monitor/work/ym';
+  
+    # Place to keep serialized Nagios configs.
+    # This is needed for running multiple ym commands before
+    # building new configuration files.
+    $STRUCT_FILE = "$YMHOME/store/config.struct";
+  
+    # Specify user and group. Ym will act and use their permissions.
+    # This feature will come later.
+    # $YM_USER  = 'monitor';
+    # $YM_GROUP = 'monitor';
+  
+    # Tell ym where you keep Nagios configs.
+    $NAGIOS_CFG_DIR = '/home/monitor/NAGIOS/etc';
+    $NAGIOS_CFG_NAME = 'nagios.cfg';
+    $NAGIOS_MAIN_CFG = "$NAGIOS_CFG_DIR/$NAGIOS_CFG_NAME";
+  
+    # Place to build test configuration when 'verify-cfg' command is called.
+    $WORKPLACE = "$YMHOME/tmp/etc";
+  
+    $HOSTNAME = `hostname -f`;
+    chomp($HOSTNAME);
+  
+    $VERBOSE = 0;
+    $DEBUG   = 0;
+  
+    # Run ym with a '--diff' option by default.
+    $SHOW_DIFF_BY_DEFAULT = 1;
+  
+    # Backup *.cfg files from NAGIOS_CFG_DIR defore generating 
+    # new configs when 'make-cfg' is called.
+    $BACKUP_CONFIG_FILES = 1;
+    $BACKUP_PATH = '/var/backups/ym/nagios_cfg_backup';
+
+    # Turn this option on if you want to add ymspecific.pl part to Ym.
+    # This will call Ym::GenerateSpecific($tree, $Ym::HOSTNAME)
+    # where you can put code for building host specific configuraion.
+    $ENABLE_YM_SPECIFIC = 0;  
+  }
 
 =head1 SYNOPSIS
 
-  Type ym --help and see all available commands.
+Type 'ym --help' and see all available console commands.
+
+Now describe usage of different subroutines.
+
+  use Ym;
+
+  # STRUCT_FILE and NAGIOS_MAIN_CFG should be defined in ymconfig.pl
+  # Will parse Nagios configs or use serialized cache if any.
+  my $tree = Ym::GetStruct($Ym::STRUCT_FILE, $Ym::NAGIOS_MAIN_CFG);
+
+  # Add a new command
+  Ym::AddCommand($tree, ['new_command'], {'command_line' => 'check_ping'});
+
+  # Add new hosts
+  Ym::AddHost($tree, ['host1', 'host2', 'READ_FILE=/tmp/hostlist'], 
+    {
+      'use' => 'default-host',
+      'contact_groups' => 'new_user_group',
+      'check_command' => 'new_command',
+    }
+  );
+
+  # Add new hostgroup
+  Ym::AddHostgroup($tree, ['hostgroup1'], {'members' => 'host1,host2'});
+
+  # Add new service
+  Ym::AddService($tree, ['raid'], ['host1'], [], 
+    {
+      'use' => 'passive-service',
+      'contact_groups' => 'some-admins',
+      'max_check_attempts' => 1,
+    }
+  );
+
+  # or add services to hostgroup.
+  Ym::AddService($tree, ['raid'], [], ['hostgroup1'], {'use' => 'raid-service'});
+
+Almost the same usage for DeleteCommand, DeleteHost, DeleteHostgroup, DeleteService and 
+
+ModifyCommand, ModifyHost, ModifyHostgroup, ModifyService subroutines.
+
+Save all changes in serialized file ($STRUCT_FILE variable must be defined in ymconfig.pl).
+
+  Ym::SaveStruct($tree, $Ym::STRUCT_FILE);
+
+Generate new config in specified dir.
+
+  Ym::GenerateCfg($tree, $dest_dir);
+
 
 =head1 AUTHOR
 

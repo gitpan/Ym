@@ -15,9 +15,10 @@ use strict;
 #use diagnostics;
 
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use lib $ENV{'YM_LIB'};
+use lib "$ENV{'YM_LIB'}/Ym";
 use Ym;
 
 use Getopt::Long;

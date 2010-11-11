@@ -4,12 +4,12 @@ MANIFEST
 README
 t/Ym.t
 
-lib/ymspecific.pl
-lib/ymgen.pl
+lib/Ym/ymgen.pl
 lib/Ym.pm
-lib/ymstat.pl
-lib/ymcmd.pl
-lib/ymcommon.pl
-lib/ymparse.pl
+lib/Ym/ymstat.pl
+lib/Ym/ymcmd.pl
+lib/Ym/ymcommon.pl
+lib/Ym/ymparse.pl
+lib/Ym/ymdata.pl
 bin/ym
 etc/ymconfig.pl

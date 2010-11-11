@@ -1,12 +1,21 @@
+#!/usr/bin/perl
+use strict;
 use 5.008008;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
+my $prereqs = {
+  'Cwd'  => 0,
+  'FindBin' => 0,
+  'Storable'  => 0,
+  'Data::Dumper' => 0,
+  'File::Copy' => 0,
+  };
+
 WriteMakefile(
-    NAME              => 'Ym',
-    VERSION_FROM      => 'lib/Ym.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/Ym.pm', # retrieve abstract from module
-       AUTHOR         => 'Andrey Grunau <andozer@>') : ()),
-);
+  NAME          => 'Ym',
+  VERSION_FROM  => 'lib/Ym.pm',
+  EXE_FILES     => [ 'bin/ym' ],
+  PREREQ_PM     => $prereqs,
+  AUTHOR     => 'Andrey Grunau <andrey-grunau@yandex.ru>',
+  );
+
